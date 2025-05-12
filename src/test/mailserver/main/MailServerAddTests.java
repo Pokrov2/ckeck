@@ -1,7 +1,6 @@
 package mailserver.main;
 
 import mailserver.Storage.UserStorage;
-import mailserver.Model.Message;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -20,15 +19,14 @@ class MailServerAddTests {
     @Test
     void testInvalidSendUsage() {
         String input = String.join(System.lineSeparator(),
-                "add alice",
+                "add Petya",
                 "send",
                 "exit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
+        createServer(input, out).run();
 
         String console = out.toString();
-        assertTrue(console.contains("Правильно: send <Отправитель> <Получатель> <заголовок> <текст>"),
-                "При пустом send должна выводиться подсказка по правильному использованию");
+        assertTrue(console.contains("Правильно: send <Отправитель> <Получатель> <заголовок> <текст>"), "При пустом send должна выводиться подсказка по правильному использованию");
     }
 
     @Test
@@ -38,10 +36,9 @@ class MailServerAddTests {
                 "inbox",
                 "exit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
+        createServer(input, out).run();
 
-        assertTrue(out.toString().contains("Правильно: inbox <Пользователь>"),
-                "При неверном inbox должна быть соответствующая подсказка");
+        assertTrue(out.toString().contains("Правильно: inbox <Пользователь>"), "При неверном inbox должна быть соответствующая подсказка");
     }
 
     @Test
@@ -51,10 +48,9 @@ class MailServerAddTests {
                 "outbox",
                 "exit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
+        createServer(input, out).run();
 
-        assertTrue(out.toString().contains("Правильно: outbox <Пользователь>"),
-                "При неверном outbox должна быть соответствующая подсказка");
+        assertTrue(out.toString().contains("Правильно: outbox <Пользователь>"), "При неверном outbox должна быть соответствующая подсказка");
     }
 
     @Test
@@ -64,25 +60,23 @@ class MailServerAddTests {
                 "setfilter",
                 "exit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
+        createServer(input, out).run();
 
-        assertTrue(out.toString().contains("Правильно: setfilter <Имя пользователя>"),
-                "При неверном setfilter должна быть соответствующая подсказка");
+        assertTrue(out.toString().contains("Правильно: setfilter <Имя пользователя>"), "При неверном setfilter должна быть соответствующая подсказка");
     }
 
     @Test
     void testDuplicateAdd() {
         String input = String.join(System.lineSeparator(),
-                "add bob",
-                "add bob",
+                "add Vasya",
+                "add Vasya",
                 "exit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
+        createServer(input, out).run();
 
         String console = out.toString();
-        assertTrue(console.contains("Пользователь добавлен: bob"));
-        assertTrue(console.contains("Такой пользователь уже существует"),
-                "При попытке добавить дубликат должно быть соответствующее сообщение");
+        assertTrue(console.contains("Пользователь добавлен: Vasya"));
+        assertTrue(console.contains("Такой пользователь уже существует"), "При попытке добавить дубликат должно быть соответствующее сообщение");
     }
 
     @Test
@@ -91,7 +85,7 @@ class MailServerAddTests {
                 "list",
                 "exit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
+        createServer(input, out).run();
 
         String[] lines = out.toString().split(System.lineSeparator());
         assertEquals("Пользователи:", lines[1].trim(),
@@ -105,103 +99,140 @@ class MailServerAddTests {
                 "LiSt",
                 "eXit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
+        createServer(input, out).run();
 
         String console = out.toString();
         assertTrue(console.contains("Пользователь добавлен: Carl"));
-        assertTrue(console.contains("- Carl"),
-                "Команды должны работать вне зависимости от регистра");
-    }
-
-    @Test
-    void testSimpleSpamFilter() {
-        String input = String.join(System.lineSeparator(),
-                "add bob",
-                "add alice",
-                "setfilter bob",
-                "simple",
-                "done",
-                "send alice bob imp smap spam offer",
-                "spam bob",
-                "exit");
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
-        assertTrue(out.toString().contains("-----"),
-                "Сообщение со словом spam должно попасть в спам");
-    }
-
-    @Test
-    void testKeywordsSpamFilter() {
-        String input = String.join(System.lineSeparator(),
-                "add bob",
-                "add alice",
-                "setfilter bob",
-                "keywords buy cheap",
-                "done",
-                "send alice bob hello buy now",
-                "spam bob",
-                "exit");
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
-
-        assertTrue(out.toString().contains("-----"),
-                "Сообщение с ключевым словом должно попасть в спам");
+        assertTrue(console.contains("- Carl"), "Команды должны работать вне зависимости от регистра");
     }
 
 
     @Test
     void testRepetitionFilterNonSpam() {
         String input = String.join(System.lineSeparator(),
-                "add bob",
-                "add alice",
-                "setfilter bob",
+                "add Vasya",
+                "add Petya",
+                "setfilter Vasya",
                 "repetition 3",
                 "done",
-                "send alice bob subj ok ok ok",
-                "inbox bob",
+                "send Petya Vasya subj ok ok ok",
+                "inbox Vasya",
                 "exit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
+        createServer(input, out).run();
 
         String output = out.toString();
-        assertTrue(output.contains("Subject: subj") || output.contains("ok ok ok"),
-                "Сообщение должно быть во входящих");
+        assertTrue(output.contains("Subject: subj") || output.contains("ok ok ok"), "Сообщение должно быть во входящих");
+    }
+
+
+    @Test
+    void testSendAndInboxShowsMessage() {
+        String input = String.join(System.lineSeparator(),
+                "add Petya",
+                "add Vasya",
+                "send Petya Vasya hi Hello Vasya",
+                "inbox Vasya",
+                "exit");
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        createServer(input, out).run();
+        String console = out.toString();
+        assertTrue(console.contains("From: Petya"),"Должен показывать отправителя");
+        assertTrue(console.contains("Subject: hi"),"Должен показывать тему");
+        assertTrue(console.contains("Body: Hello Vasya"),"Должен показывать тело сообщения");
     }
 
     @Test
-    void testSenderFilter() {
+    void testOutboxShowsSentMessage() {
         String input = String.join(System.lineSeparator(),
-                "add bob",
-                "add mallory",
-                "setfilter bob",
-                "sender mallory",
-                "done",
-                "send mallory bob subj hey",
-                "spam bob",
+                "add Petya",
+                "add Vasya",
+                "send Petya Vasya subj Body text",
+                "outbox Petya",
                 "exit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
-
-        assertTrue(out.toString().contains("-----"),
-                "Сообщение от заблокированного отправителя должно попасть в спам");
+        createServer(input, out).run();
+        String console = out.toString();
+        assertTrue(console.contains("От: Petya"),"Outbox должен использовать toString() Message");
+        assertTrue(console.contains("Кому: Vasya"),"Outbox должен использовать toString() Message");
+        assertTrue(console.contains("Тема: subj"),"Outbox должен использовать toString() Message");
+        assertTrue(console.contains("Текст: Body text"),"Outbox должен использовать toString() Message");
     }
 
     @Test
-    void testCompositeFilter() {
+    void testSpamDefaultEmptyThenInboxGivesIt() {
         String input = String.join(System.lineSeparator(),
-                "add bob",
-                "add eve",
-                "setfilter bob",
-                "simple",
-                "keywords secret",
-                "done",
-                "send eve bob spam news",
-                "spam bob",
+                "add Petya",
+                "add Vasya",
+                "send Petya Vasya spam junk",
+                "spam Vasya",
+                "inbox Vasya",
                 "exit");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        createServer(input, out).Run();
+        createServer(input, out).run();
+        String console = out.toString();
+        assertTrue(console.contains("Сообщения: пусто."),"Spam по-умолчанию пуст");
+        assertTrue(console.contains("From: Petya"),"Inbox должен содержать сообщение");
+    }
 
-        assertTrue(out.toString().contains("-----"),
-                "Composite должен поймать по любому из фильтров");
+    @Test
+    void testKeywordsUsageErrorAndRecovery() {
+        String input = String.join(System.lineSeparator(),
+                "add Petya",
+                "add Vasya",
+                "setfilter Vasya",
+                "keywords",
+                "keywords sale",
+                "done",
+                "send Petya Vasya sale item",
+                "spam Vasya",
+                "exit");
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        createServer(input, out).run();
+        String console = out.toString();
+        assertTrue(console.contains("Правильно: keywords <слово1> <слово2> ..."), "Должен указывать синтаксис keywords при отсутствии аргументов");
+        assertTrue(console.contains("Добавлен фильтр ключевых слов: sale"), "Должен добавить фильтр после правильного ввода");
+        assertTrue(console.contains("From: Petya"), "Сообщение с ключевым словом 'sale' должно попасть в spam");
+    }
+
+    @Test
+    void testRepetitionUsageErrorAndSenderUsageError() {
+        String input = String.join(System.lineSeparator(),
+                "add Petya",
+                "add Vasya",
+                "setfilter Vasya",
+                "repetition not_a_number",
+                "sender",
+                "sender Petya",
+                "done",
+                "send Petya Vasya x x",
+                "spam Vasya",
+                "exit");
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        createServer(input, out).run();
+        String console = out.toString();
+        assertTrue(console.contains("Ошибка: лимит должен быть числом"), "При неверном параметре repetition должны сообщить об ошибке");
+        assertTrue(console.contains("Правильно: sender <имя1> <имя2> ..."), "При отсутствии имён sender должен показать подсказку");
+        assertTrue(console.contains("Добавлен фильтр отправителей: [Petya]"), "После правильного sender должен добавить фильтр");
+        assertTrue(console.contains("From: Petya"), "Письмо от заблокированного отправителя должно попасть в spam");
+    }
+
+    @Test
+    void testEmptyAndWhitespaceLinesAreIgnored() {
+        String input = ""
+                + System.lineSeparator()
+                + "   "+System.lineSeparator()
+                + "add x"+System.lineSeparator()
+                + ""+ System.lineSeparator()
+                + "inbox x" + System.lineSeparator()
+                + "exit";
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        createServer(input, out).run();
+        String console = out.toString();
+        assertTrue(console.contains("Пользователь добавлен: x"));
+        assertTrue(console.contains("Сообщения: пусто."), "Пустые и пробельные строки должны просто игнорироваться");
     }
 }
+
+
+

@@ -14,27 +14,24 @@ import static org.junit.jupiter.api.Assertions.*;
 class MailServerRunTest {
 
     @Test
-    void testRun_addAndListAndExit() {
-        // готовим эмуляцию ввода: add alice → list → exit
+    void testRunaddAndListAndExit() {
         String input = String.join(System.lineSeparator(),
-                "add alice",
+                "add Petya",
                 "list",
                 "exit");
         ByteArrayInputStream in = new ByteArrayInputStream(input.getBytes());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         MailServer server = new MailServer(new UserStorage(), in, new PrintStream(out));
 
-        server.Run();
+        server.run();
 
         String console = out.toString();
-        assertTrue(console.contains("Пользователь добавлен: alice"),
-                "должны видеть подтверждение добавления");
-        assertTrue(console.contains("- alice"),
-                "должны видеть в списке пользователя alice");
+        assertTrue(console.contains("Пользователь добавлен: Petya"), "должны видеть подтверждение добавления");
+        assertTrue(console.contains("- Petya"), "должны видеть в списке пользователя Petya");
     }
 
     @Test
-    void testRun_unknownCommandShowsError() {
+    void testRununknownCommandShowsError() {
         String input = String.join(System.lineSeparator(),
                 "foobar",
                 "exit");
@@ -42,10 +39,9 @@ class MailServerRunTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         MailServer server = new MailServer(new UserStorage(), in, new PrintStream(out));
 
-        server.Run();
+        server.run();
 
         String console = out.toString();
-        assertTrue(console.contains("Неизвестная команда."),
-                "неизвестная команда должна вывести сообщение об ошибке");
+        assertTrue(console.contains("Неизвестная команда."), "неизвестная команда должна вывести сообщение об ошибке");
     }
 }

@@ -1,9 +1,6 @@
 package mailserver.Filter;
 
 import mailserver.Model.Message;
-
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 public class SenderSpamFilter implements SpamFilter {
@@ -13,7 +10,7 @@ public class SenderSpamFilter implements SpamFilter {
     }
     @Override
     public boolean isSpam(Message message) {
-        return blocked.contains(message.GetSender());
+        return blocked.contains(message.getSender());
     }
 }
 

@@ -3,28 +3,26 @@ package mailserver.Filter;
 import mailserver.Model.Message;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.Objects;
 
 public class KeywordsSpamFilter implements SpamFilter {
-    private final List<String> keywords;
+    private final Set<String> keywords;
 
     public KeywordsSpamFilter(String get_list) {
-
-        this.keywords = Arrays.stream(get_list.trim().split("\\s+")).map(String::toLowerCase).toList();
+        Objects.requireNonNull(get_list, "Ключевые слова не могут остуствовать");
+        this.keywords = Arrays.stream(get_list.toLowerCase().trim().split("\\s+"))
+                .filter(word -> word.matches("[а-яёa-z0-9]+"))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public boolean isSpam(Message message) {
-        List<String> messageWords = new ArrayList<>();
-        String[] tempMsgWords = (message.GetCaption() + " " + message.GetText())
-                .toLowerCase()
-                .split("[^а-яёa-z0-9]");
-        for (String word : tempMsgWords) {
-            if (!word.isEmpty()) {
-                messageWords.add(word);
-            }
-        }
-
-        return messageWords.stream().anyMatch(keywords::contains);
+        String text = (message.getCaption() == null ? "" : message.getCaption()) + " " +
+                (message.getText() == null ? "" : message.getText());
+        return Arrays.stream(text.toLowerCase().split("[^а-яёa-z0-9]+"))
+                .filter(word -> !word.isEmpty())
+                .anyMatch(keywords::contains);
     }
 }
 

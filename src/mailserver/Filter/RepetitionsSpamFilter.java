@@ -14,11 +14,11 @@ public class RepetitionsSpamFilter implements SpamFilter {
 
     @Override
     public boolean isSpam(Message message) {
-        if (message == null || message.GetText() == null || message.GetText().isEmpty()) {
+        if (message == null || message.getText() == null || message.getText().isEmpty()) {
             return false;
         }
 
-        String text = message.GetText().toLowerCase();
+        String text = message.getText().toLowerCase();
         String[] words = text.split("[^\\p{L}]+");
 
 
@@ -30,8 +30,7 @@ public class RepetitionsSpamFilter implements SpamFilter {
             int count = wordCount.getOrDefault(word, 0) + 1;
             wordCount.put(word, count);
 
-            // Проверяем, превышает ли количество повторений лимит
-            if (count > maxRepetitions) { // Например, при maxRepetitions=3: 4 > 3 → true
+            if (count > maxRepetitions) {
                 return true;
             }
         }

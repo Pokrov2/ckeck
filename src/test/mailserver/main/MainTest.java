@@ -12,8 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MainTest {
 
     @Test
-    void testMain_invokesMailServerRun() {
-        // эмулируем ввод "exit" сразу, чтобы цикл завершился
+    void testMainInvokesMailServerRun() {
         ByteArrayInputStream in = new ByteArrayInputStream("exit\n".getBytes());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         System.setIn(in);

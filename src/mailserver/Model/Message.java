@@ -13,19 +13,19 @@ public class Message {
         this.receiver = receiver;
     }
 
-    public String GetCaption() {
+    public String getCaption() {
         return caption;
     }
 
-    public String GetText() {
+    public String getText() {
         return text;
     }
 
-    public String GetSender() {
+    public String getSender() {
         return sender;
     }
 
-    public String GetReceiver() {
+    public String getReceiver() {
         return receiver;
     }
 

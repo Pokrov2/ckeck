@@ -26,122 +26,124 @@ public class MailServer {
         this(new UserStorage(), System.in, System.out);
     }
 
-    public void Run() {
+    public void run() {
         output.println("An impudent copy mail.ru launched:");
         while (true) {
             String input = scanner.nextLine().trim();
             if (input.equalsIgnoreCase("exit")) break;
 
             if (isSettingFilter) {
-                HandleFilterInput(input);
+                handleFilterInput(input);
             } else {
-                HandleCommand(input);
+                handleCommand(input);
             }
         }
     }
 
-    void HandleCommand(String input) {
+    void handleCommand(String input) {
         String[] tokens = input.split(" ");
         if (tokens.length == 0) return;
         String command = tokens[0].toLowerCase();
         switch (command) {
-            case "add": HandleAdd(tokens); break;
-            case "list": HandleList(); break;
-            case "send": HandleSend(tokens); break;
-            case "inbox": HandleInbox(tokens, false); break;
-            case "spam": HandleInbox(tokens, true); break;
-            case "outbox": HandleOutbox(tokens); break;
-            case "setfilter": HandleSetFilter(tokens); break;
+            case "add": handleAdd(tokens); break;
+            case "list": handleList(); break;
+            case "send": handleSend(tokens); break;
+            case "inbox": handleInbox(tokens, false); break;
+            case "spam": handleInbox(tokens, true); break;
+            case "outbox": handleOutbox(tokens); break;
+            case "setfilter": handleSetFilter(tokens); break;
             default: output.println("Неизвестная команда.");
         }
     }
 
-    void HandleAdd(String[] tokens) {
+    void handleAdd(String[] tokens) {
         if (tokens.length != 2) {
             output.println("Правильно: add <Пользователь>");
             return;
         }
         String username = tokens[1];
-        if (userStorage.UserExists(username)) {
+        if (userStorage.userExists(username)) {
             output.println("Такой пользователь уже существует");
         } else {
-            userStorage.AddUser(new User(username));
+            userStorage.addUser(new User(username));
             output.println("Пользователь добавлен: " + username);
         }
     }
 
-    void HandleList() {
+    void handleList() {
         output.println("Пользователи:");
-        for (User user : userStorage.GetAllUsers()) {
-            output.println("- " + user.GetUsername());
+        for (User user : userStorage.getAllUsers()) {
+            output.println("- " + user.getUsername());
         }
         output.println("Пользователи:");
 
-        List<User> all = userStorage.GetAllUsers();
+        List<User> all = userStorage.getAllUsers();
 
         if (all.isEmpty()) {
             return;
         }
         for (User user : all) {
-            output.println("- " + user.GetUsername());
+            output.println("- " + user.getUsername());
         }
     }
 
 
-    void HandleSend(String[] tokens) {
+    void handleSend(String[] tokens) {
         if (tokens.length < 5) {
             output.println("Правильно: send <Отправитель> <Получатель> <заголовок> <текст>");
             return;
         }
         String senderName = tokens[1];
         String receiverName = tokens[2];
-        if (!userStorage.UserExists(senderName) || !userStorage.UserExists(receiverName)) {
+        if (!userStorage.userExists(senderName) || !userStorage.userExists(receiverName)) {
             output.println("Отправитель или получатель отсутствует");
             return;
         }
         String caption = tokens[3];
         String text = String.join(" ", Arrays.copyOfRange(tokens, 4, tokens.length));
-        User sender = userStorage.GetUser(senderName);
-        User receiver = userStorage.GetUser(receiverName);
-        sender.SendMessage(receiver, caption, text);
+        User sender = userStorage.getUser(senderName);
+        User receiver = userStorage.getUser(receiverName);
+        sender.sendMessage(receiver, caption, text);
         output.println("Сообщение отправлено!.");
     }
 
-    void HandleInbox(String[] tokens, boolean spam) {
+    void handleInbox(String[] tokens, boolean spam) {
         if (tokens.length != 2) {
             output.println("Правильно: " + (spam ? "spam" : "inbox") + " <Пользователь>");
             return;
         }
         String username = tokens[1];
-        if (!userStorage.UserExists(username)) {
+        if (!userStorage.userExists(username)) {
             output.println("Пользователь отсутствует");
             return;
         }
-        User user = userStorage.GetUser(username);
-        List<Message> messages = spam ? user.GetSpam() : user.GetInbox();
+        User user = userStorage.getUser(username);
+
+        List<Message> messages = spam ? user.getSpam(): user.getInbox();
         if (messages.isEmpty()) {
             output.println("Сообщения: пусто.");
             return;
         }
         for (Message msg : messages) {
             output.println("-----");
-            output.println("Subject: " + msg.GetCaption()); // Явный вывод заголовка
-            output.println(msg.GetText());
+            output.println("From: " + msg.getSender());
+            output.println("Subject: " + msg.getCaption());
+            output.println("Body: " + msg.getText());
         }
     }
 
-    void HandleOutbox(String[] tokens) {
+    void handleOutbox(String[] tokens) {
         if (tokens.length != 2) {
             output.println("Правильно: outbox <Пользователь>");
             return;
         }
         String username = tokens[1];
-        if (!userStorage.UserExists(username)) {
+        if (!userStorage.userExists(username)) {
             output.println("Пользователь отсутствует");
             return;
         }
-        User user = userStorage.GetUser(username);
-        List<Message> outbox = user.GetOutbox();
+        User user = userStorage.getUser(username);
+        List<Message> outbox = user.getOutbox();
         if (outbox.isEmpty()) {
             output.println("Отправленные сообщения: пусто.");
             return;
@@ -152,13 +154,13 @@ public class MailServer {
         }
     }
 
-    void HandleSetFilter(String[] tokens) {
+    void handleSetFilter(String[] tokens) {
         if (tokens.length != 2) {
             output.println("Правильно: setfilter <Имя пользователя>");
             return;
         }
         String username = tokens[1];
-        if (!userStorage.UserExists(username)) {
+        if (!userStorage.userExists(username)) {
             output.println("Пользователь отсутствует");
             return;
         }
@@ -168,10 +170,13 @@ public class MailServer {
         output.println("Примеры фильтров: simple, keywords, repetition, sender. Напишите 'done' чтобы закончить вводить фильтры:");
     }
 
-    void HandleFilterInput(String input) {
+    void handleFilterInput(String input) {
         if (input.equalsIgnoreCase("done")) {
-            User user = userStorage.GetUser(filteringUser);
-            user.SetSpamFilter(new CompositeSpamFilter(currentFilters));
+            User user = userStorage.getUser(filteringUser);
+            SpamFilter finalFilter = currentFilters.isEmpty()
+                    ? new CompositeSpamFilter(List.of())
+                    : new CompositeSpamFilter(new ArrayList<>(currentFilters));
+            user.setSpamFilter(finalFilter);
             output.println("Спам фильтр установлен для " + filteringUser);
             isSettingFilter = false;
             filteringUser = null;
@@ -190,10 +195,7 @@ public class MailServer {
                     output.println("Правильно: keywords <слово1> <слово2> ...");
                     break;
                 }
-                String kw = "";
-                for(int i = 1;i<tokens.length;i++){
-                    kw = kw+tokens[i]+"";
-                }
+                String kw = String.join(" ", Arrays.copyOfRange(tokens, 1, tokens.length));
                 List<String> keywords = Arrays.asList(Arrays.copyOfRange(tokens, 1, tokens.length));
                 currentFilters.add(new KeywordsSpamFilter(kw));
                 output.println("Добавлен фильтр ключевых слов: " + kw);
